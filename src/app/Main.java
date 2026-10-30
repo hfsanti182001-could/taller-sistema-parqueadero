@@ -43,6 +43,15 @@ class Parqueadero {
         }
     }
 
+    static int buscarCeldaDisponible() {
+        for (int i = 0; i < CAPACIDAD_TOTAL; i++) {
+            if (tiposVehiculo[i] == null) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
 
 
 }
