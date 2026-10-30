@@ -1,5 +1,6 @@
 package app;
 
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
@@ -91,6 +92,89 @@ class Parqueadero {
                 if (!ldt.format(FORMATO_FECHA_HORA).equals(texto)) continue;
                 return ldt;
             } catch (Exception ignored) {}
+        }
+    }
+
+
+
+    static void registrarEntrada() {
+        int celdaLibre = buscarCeldaDisponible();
+        if (celdaLibre == -1) {
+            System.out.println("Error: El parqueadero está lleno.");
+            return;
+        }
+
+        System.out.println("\n--- REGISTRO DE ENTRADA ---");
+        String tipo = leerTipoVehiculo();
+        LocalDateTime fechaIngreso = leerFechaHora("Ingrese fecha y hora de ingreso (yyyy-MM-dd HH:mm): ");
+
+        tiposVehiculo[celdaLibre] = tipo;
+        fechasIngreso[celdaLibre] = fechaIngreso;
+
+        System.out.println("-> Vehículo registrado en la Celda #" + (celdaLibre + 1));
+    }
+
+    static String leerTipoVehiculo() {
+        while (true) {
+            System.out.print("Ingrese tipo de vehículo (Carro / Moto): ");
+            String tipo = SCANNER.nextLine().trim();
+            if (tipo.equalsIgnoreCase("Carro") || tipo.equalsIgnoreCase("Moto")) {
+                return tipo.substring(0, 1).toUpperCase() + tipo.substring(1).toLowerCase();
+            }
+            System.out.println("Debe ser 'Carro' o 'Moto'.");
+        }
+    }
+
+
+    static void registrarSalida() {
+        System.out.println("\n--- REGISTRO DE SALIDA ---");
+        int numCelda = leerNumeroCelda("Ingrese el número de celda (1 - " + CAPACIDAD_TOTAL + "): ");
+        int indice = numCelda - 1;
+
+        if (tiposVehiculo[indice] == null) {
+            System.out.println("Error: La celda #" + numCelda + " está vacía.");
+            return;
+        }
+
+        String tipo = tiposVehiculo[indice];
+        LocalDateTime ingreso = fechasIngreso[indice];
+
+        LocalDateTime salida;
+        while (true) {
+            salida = leerFechaHora("Ingrese fecha y hora de salida (yyyy-MM-dd HH:mm): ");
+            if (salida.isBefore(ingreso)) {
+                System.out.println("Error: La salida no puede ser anterior a la entrada.");
+            } else {
+                break;
+            }
+        }
+
+        double totalPagado = calcularYLiquidar(numCelda, tipo, ingreso, salida);
+
+        if (tipo.equalsIgnoreCase("Carro")) {
+            recaudoCarros += totalPagado;
+        } else {
+            recaudoMotos += totalPagado;
+        }
+
+        tiposVehiculo[indice] = null;
+        fechasIngreso[indice] = null;
+
+        System.out.println("-> Celda #" + numCelda + " liberada.");
+    }
+
+    static int leerNumeroCelda(String mensaje) {
+        return leerOpcionMenu(mensaje, 1, CAPACIDAD_TOTAL);
+    }
+
+    static int leerOpcionMenu(String mensaje, int min, int max) {
+        while (true) {
+            System.out.print(mensaje);
+            try {
+                int valor = Integer.parseInt(SCANNER.nextLine().trim());
+                if (valor >= min && valor <= max) return valor;
+            } catch (NumberFormatException ignored) {}
+            System.out.println("Opción inválida.");
         }
     }
 
