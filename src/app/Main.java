@@ -1,39 +1,56 @@
 package app;
 
-
+import java.time.temporal.ChronoUnit;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 class Parqueadero {
 
-
     static final int CAPACIDAD_TOTAL = 10;
-    static final double TARIFA_HORA_CARRO = 4000.0; // Nota: en Java los decimales usan punto (.)
-    static final double TARIFA_DIA_CARRO = 30000.0;
-    static final double TARIFA_HORA_MOTO = 2000.0;
-    static final double TARIFA_DIA_MOTO = 15000.0;
+    static final double TARIFA_HORA_CARRO = 4.000;
+    static final double TARIFA_DIA_CARRO = 30.000;
+    static final double TARIFA_HORA_MOTO = 2.000;
+    static final double TARIFA_DIA_MOTO = 15.000;
     static final int UMBRAL_HORAS_DIA = 8;
     static final int HORA_APERTURA = 8;
     static final int HORA_CIERRE = 22;
 
-
     static final DateTimeFormatter FORMATO_FECHA_HORA = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     static final Scanner SCANNER = new Scanner(System.in);
-
 
     static String[] tiposVehiculo = new String[CAPACIDAD_TOTAL];
     static LocalDateTime[] fechasIngreso = new LocalDateTime[CAPACIDAD_TOTAL];
 
-    // Variables de acumulados (recaudos)
     static double recaudoCarros = 0.0;
     static double recaudoMotos = 0.0;
 
+    // Único método main del sistema
     public static void main(String[] args) {
         inicializarArreglos();
 
+        boolean salir = false;
+        while (!salir) {
+            System.out.println("\n=== SISTEMA DE GESTIÓN DE PARQUEADERO ===");
+            System.out.println("1. Registrar entrada de vehículo");
+            System.out.println("2. Registrar salida de vehículo");
+            System.out.println("3. Consultar reporte de ocupación");
+            System.out.println("4. Consultar reporte financiero");
+            System.out.println("5. Salir");
 
+            int opcion = leerOpcionMenu("Seleccione una opción: ", 1, 5);
 
+            switch (opcion) {
+                case 1: registrarEntrada(); break;
+                case 2: registrarSalida(); break;
+                case 3: reporteOcupacion(); break;
+                case 4: reporteFinanciero(); break;
+                case 5:
+                    salir = true;
+                    System.out.println("Saliendo del sistema...");
+                    break;
+            }
+        }
         SCANNER.close();
     }
 
@@ -95,8 +112,6 @@ class Parqueadero {
         }
     }
 
-
-
     static void registrarEntrada() {
         int celdaLibre = buscarCeldaDisponible();
         if (celdaLibre == -1) {
@@ -124,7 +139,6 @@ class Parqueadero {
             System.out.println("Debe ser 'Carro' o 'Moto'.");
         }
     }
-
 
     static void registrarSalida() {
         System.out.println("\n--- REGISTRO DE SALIDA ---");
@@ -178,8 +192,6 @@ class Parqueadero {
         }
     }
 
-
-
     static double calcularYLiquidar(int numCelda, String tipo, LocalDateTime ingreso, LocalDateTime salida) {
         long diasACobrar = contarDiasCompletos(ingreso, salida);
         LocalDateTime cursor = ingreso.plusDays(diasACobrar);
@@ -215,12 +227,27 @@ class Parqueadero {
     }
 
     static long contarDiasCompletos(LocalDateTime ingreso, LocalDateTime salida) {
-        return java.time.temporal.ChronoUnit.DAYS.between(ingreso, salida);
+        return ChronoUnit.DAYS.between(ingreso, salida);
     }
 
     static long calcularHorasRestantes(LocalDateTime cursor, LocalDateTime salida) {
         return (java.time.Duration.between(cursor, salida).toMinutes() + 59) / 60;
+    }
 
+    static void reporteOcupacion() {
+        int ocupadas = 0;
+        for (int i = 0; i < CAPACIDAD_TOTAL; i++) {
+            if (tiposVehiculo[i] != null) ocupadas++;
+        }
+        System.out.println("\n--- REPORTE DE OCUPACIÓN ---");
+        System.out.println("Celdas Ocupadas : " + ocupadas);
+        System.out.println("Celdas Libres   : " + (CAPACIDAD_TOTAL - ocupadas));
+    }
 
-
+    static void reporteFinanciero() {
+        System.out.println("\n--- REPORTE FINANCIERO ---");
+        System.out.println("Recaudo Carros : $" + (int)recaudoCarros);
+        System.out.println("Recaudo Motos  : $" + (int)recaudoMotos);
+        System.out.println("Total General  : $" + (int)(recaudoCarros + recaudoMotos));
+    }
 }
