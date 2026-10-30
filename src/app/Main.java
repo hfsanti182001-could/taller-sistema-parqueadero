@@ -180,4 +180,47 @@ class Parqueadero {
 
 
 
+    static double calcularYLiquidar(int numCelda, String tipo, LocalDateTime ingreso, LocalDateTime salida) {
+        long diasACobrar = contarDiasCompletos(ingreso, salida);
+        LocalDateTime cursor = ingreso.plusDays(diasACobrar);
+        long horasACobrar = calcularHorasRestantes(cursor, salida);
+
+        if (horasACobrar >= UMBRAL_HORAS_DIA) {
+            diasACobrar++;
+            horasACobrar = 0;
+        }
+
+        double tarifaDia = tipo.equalsIgnoreCase("Carro") ? TARIFA_DIA_CARRO : TARIFA_DIA_MOTO;
+        double tarifaHora = tipo.equalsIgnoreCase("Carro") ? TARIFA_HORA_CARRO : TARIFA_HORA_MOTO;
+
+        double subtotalDias = diasACobrar * tarifaDia;
+        double subtotalHoras = horasACobrar * tarifaHora;
+        double total = subtotalDias + subtotalHoras;
+
+        System.out.println("\n==========================================");
+        System.out.println("            FACTURA DE SALIDA             ");
+        System.out.println("==========================================");
+        System.out.println("Celda Liberada : " + numCelda);
+        System.out.println("Tipo Vehículo  : " + tipo);
+        System.out.println("Fecha Ingreso  : " + ingreso.format(FORMATO_FECHA_HORA));
+        System.out.println("Fecha Salida   : " + salida.format(FORMATO_FECHA_HORA));
+        System.out.println("------------------------------------------");
+        if (diasACobrar > 0) System.out.println("- Días (" + diasACobrar + "): $" + (int)subtotalDias);
+        if (horasACobrar > 0 || diasACobrar == 0) System.out.println("- Horas (" + horasACobrar + "): $" + (int)subtotalHoras);
+        System.out.println("------------------------------------------");
+        System.out.println("TOTAL A PAGAR  : $" + (int)total);
+        System.out.println("==========================================\n");
+
+        return total;
+    }
+
+    static long contarDiasCompletos(LocalDateTime ingreso, LocalDateTime salida) {
+        return java.time.temporal.ChronoUnit.DAYS.between(ingreso, salida);
+    }
+
+    static long calcularHorasRestantes(LocalDateTime cursor, LocalDateTime salida) {
+        return (java.time.Duration.between(cursor, salida).toMinutes() + 59) / 60;
+
+
+
 }
